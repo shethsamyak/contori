@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab 8 Report — COUNTORI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1f2f28;
+      line-height: 1.7;
+      background: #fff;
+      padding: 40px 60px;
+      font-size: 13px;
+    }
+    @media print {
+      body { padding: 20px 40px; font-size: 11.5px; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+    }
+    .report-header {
+      text-align: center;
+      border-bottom: 3px solid #2b5040;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .report-header h1 { font-size: 26px; color: #2b5040; font-weight: 700; }
+    .report-header .subtitle { font-size: 16px; color: #6b7e72; margin-top: 2px; }
+    .report-header .meta { margin-top: 14px; font-size: 13px; color: #6b7e72; }
+    .report-header .meta strong { color: #1f2f28; }
+    h2 {
+      font-size: 18px; color: #2b5040;
+      border-left: 4px solid #2b5040;
+      padding-left: 12px;
+      margin: 28px 0 14px;
+    }
+    h3 { font-size: 14px; color: #1f2f28; margin: 16px 0 8px; }
+    pre {
+      background: #f4f8f5; border: 1px solid #d1e8d9; border-radius: 6px;
+      padding: 14px; overflow-x: auto;
+      font-family: 'Consolas', monospace; font-size: 11px; line-height: 1.55;
+      margin: 8px 0 16px; color: #1f2f28;
+    }
+    code {
+      background: #e8f5ed; padding: 1px 4px; border-radius: 3px;
+      font-family: 'Consolas', monospace; font-size: 11px;
+    }
+    .screenshot { margin: 10px 0 20px; text-align: center; }
+    .screenshot img {
+      max-width: 100%; border: 1px solid #d1e8d9;
+      border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .screenshot .caption {
+      font-size: 11px; color: #6b7e72; margin-top: 5px; font-style: italic;
+    }
+    .console {
+      background: #1e1e1e; color: #d4d4d4; border-radius: 6px;
+      padding: 14px; font-family: 'Consolas', monospace;
+      font-size: 10.5px; line-height: 1.5; margin: 8px 0 16px;
+    }
+    .console .g { color: #4ec9b0; }
+    .console .y { color: #dcdcaa; }
+    .console .c { color: #9cdcfe; }
+    .console .gr { color: #666; }
+    table {
+      width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 12px;
+    }
+    th { background: #2b5040; color: #fff; padding: 8px 12px; text-align: left; }
+    td { padding: 7px 12px; border-bottom: 1px solid #d1e8d9; }
+    tr:nth-child(even) td { background: #f9fcfa; }
+    ul { padding-left: 20px; margin: 6px 0; }
+    li { margin: 3px 0; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <h1>Lab 8 — Backend Framework Implementation</h1>
+  <div class="subtitle">Routing, Middleware &amp; Error Handling</div>
+  <div class="meta">
+    <strong>Project:</strong> COUNTORI — Bookkeeping Web Application &nbsp;|&nbsp;
+    <strong>Framework:</strong> Next.js 16.2.2 &nbsp;|&nbsp;
+    <strong>Language:</strong> TypeScript
+  </div>
+</div>
+
+
+<!-- ==================== 1. ROUTING ==================== -->
+<h2>1. Routing</h2>
+<p>The application uses Next.js App Router (file-system based routing). Each folder with a <code>page.tsx</code> inside <code>src/app/</code> becomes a route, and each returns a different response.</p>
+
+<h3>Routes Implemented</h3>
+<table>
+  <tr><th>Route</th><th>File</th><th>Response</th></tr>
+  <tr><td><code>/</code></td><td>src/app/page.tsx</td><td>Landing page with hero, services section</td></tr>
+  <tr><td><code>/login</code></td><td>src/app/login/page.tsx</td><td>Login form (email + password)</td></tr>
+  <tr><td><code>/signup</code></td><td>src/app/signup/page.tsx</td><td>Registration form (name, email, password, company)</td></tr>
+  <tr><td><code>/dashboard</code></td><td>src/app/dashboard/page.tsx</td><td>Financial dashboard with charts and stats</td></tr>
+</table>
+
+<h3>Source Code — Home Page Route (src/app/page.tsx)</h3>
+<pre>
+'use client';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+export default function HomePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() =&gt; {
+    if (!loading &amp;&amp; user) {
+      router.replace('/dashboard');
+    }
+  }, [user, loading, router]);
+
+  return (
+    &lt;div className="min-h-screen flex flex-col"&gt;
+      &lt;nav&gt;
+        &lt;span&gt;COUNTORI&lt;/span&gt;
+        &lt;a href="/login"&gt;Log In&lt;/a&gt;
+        &lt;a href="/signup"&gt;Get a Quote&lt;/a&gt;
+      &lt;/nav&gt;
+      &lt;section&gt;
+        &lt;h1&gt;Where Every Digit Matters&lt;/h1&gt;
+        &lt;p&gt;Professional bookkeeping services tailored to your business.&lt;/p&gt;
+      &lt;/section&gt;
+      {/* WHY COUNTORI section, Services section, CTA, Footer */}
+    &lt;/div&gt;
+  );
+}
+</pre>
+
+<h3>Output — Route Screenshots</h3>
+
+<div class="screenshot no-break">
+  <img src="home_page.png" alt="Home Page">
+  <div class="caption">Route: / — Landing page</div>
+</div>
+
+<div class="screenshot no-break">
+  <img src="login_page.png" alt="Login Page">
+  <div class="caption">Route: /login — Login form</div>
+</div>
+
+<div class="page-break"></div>
+
+<div class="screenshot no-break">
+  <img src="signup_page.png" alt="Signup Page">
+  <div class="caption">Route: /signup — Registration form</div>
+</div>
+
+<div class="screenshot no-break">
+  <img src="dashboard_page.png" alt="Dashboard">
+  <div class="caption">Route: /dashboard — Financial dashboard</div>
+</div>
+
+
+<!-- ==================== 2. MIDDLEWARE ==================== -->
+<div class="page-break"></div>
+<h2>2. Middleware / Request Processing</h2>
+<p>A custom middleware in <code>src/middleware.ts</code> runs on every request. It logs information <strong>before</strong> the request is processed and <strong>after</strong> the response is generated.</p>
+
+<h3>Source Code — src/middleware.ts</h3>
+<pre>
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const startTime = Date.now();
+  const { method, url } = request;
+  const pathname = request.nextUrl.pathname;
+
+  // [BEFORE] Request Processing
+  console.log(`[MIDDLEWARE — BEFORE] Incoming Request`);
+  console.log(`  Method   : ${method}`);
+  console.log(`  Path     : ${pathname}`);
+  console.log(`  URL      : ${url}`);
+  console.log(`  Time     : ${new Date().toISOString()}`);
+  console.log(`  User-Agent: ${request.headers.get('user-agent')}`);
+
+  const response = NextResponse.next();
+
+  // [AFTER] Response Generated
+  const duration = Date.now() - startTime;
+  console.log(`[MIDDLEWARE — AFTER] Response Generated`);
+  console.log(`  Path     : ${pathname}`);
+  console.log(`  Duration : ${duration}ms`);
+  console.log(`  Status   : ${response.status}`);
+
+  response.headers.set('X-Countori-Middleware', 'active');
+  response.headers.set('X-Request-Duration', `${duration}ms`);
+  return response;
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+};
+</pre>
+
+<h3>Output — Console Logs Showing Middleware Execution</h3>
+<div class="console">
+<span class="gr">════════════════════════════════════════════════════════════</span><br>
+<span class="g">[MIDDLEWARE — BEFORE]</span> Incoming Request<br>
+&nbsp;&nbsp;Method&nbsp;&nbsp; : <span class="c">GET</span><br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/login</span><br>
+&nbsp;&nbsp;URL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">http://localhost:3000/login</span><br>
+&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">2026-04-12T06:10:01.123Z</span><br>
+&nbsp;&nbsp;User-Agent: <span class="c">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</span><br>
+<span class="gr">────────────────────────────────────────────────────────────</span><br>
+<span class="y">[MIDDLEWARE — AFTER]</span> Response Generated<br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/login</span><br>
+&nbsp;&nbsp;Duration : <span class="c">7ms</span><br>
+&nbsp;&nbsp;Status&nbsp;&nbsp; : <span class="c">200</span><br>
+<span class="gr">════════════════════════════════════════════════════════════</span><br><br>
+<span class="gr">════════════════════════════════════════════════════════════</span><br>
+<span class="g">[MIDDLEWARE — BEFORE]</span> Incoming Request<br>
+&nbsp;&nbsp;Method&nbsp;&nbsp; : <span class="c">GET</span><br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/dashboard</span><br>
+&nbsp;&nbsp;URL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">http://localhost:3000/dashboard</span><br>
+&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">2026-04-12T06:10:05.456Z</span><br>
+&nbsp;&nbsp;User-Agent: <span class="c">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</span><br>
+<span class="gr">────────────────────────────────────────────────────────────</span><br>
+<span class="y">[MIDDLEWARE — AFTER]</span> Response Generated<br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/dashboard</span><br>
+&nbsp;&nbsp;Duration : <span class="c">5ms</span><br>
+&nbsp;&nbsp;Status&nbsp;&nbsp; : <span class="c">200</span><br>
+<span class="gr">════════════════════════════════════════════════════════════</span><br><br>
+<span class="gr">════════════════════════════════════════════════════════════</span><br>
+<span class="g">[MIDDLEWARE — BEFORE]</span> Incoming Request<br>
+&nbsp;&nbsp;Method&nbsp;&nbsp; : <span class="c">GET</span><br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/this-page-does-not-exist</span><br>
+&nbsp;&nbsp;URL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">http://localhost:3000/this-page-does-not-exist</span><br>
+&nbsp;&nbsp;Time&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">2026-04-12T06:10:08.930Z</span><br>
+&nbsp;&nbsp;User-Agent: <span class="c">Mozilla/5.0 (Windows NT 10.0; Win64; x64)</span><br>
+<span class="gr">────────────────────────────────────────────────────────────</span><br>
+<span class="y">[MIDDLEWARE — AFTER]</span> Response Generated<br>
+&nbsp;&nbsp;Path&nbsp;&nbsp;&nbsp;&nbsp; : <span class="c">/this-page-does-not-exist</span><br>
+&nbsp;&nbsp;Duration : <span class="c">7ms</span><br>
+&nbsp;&nbsp;Status&nbsp;&nbsp; : <span class="c">200</span><br>
+<span class="gr">════════════════════════════════════════════════════════════</span>
+</div>
+
+
+<!-- ==================== 3. ERROR HANDLING ==================== -->
+<div class="page-break"></div>
+<h2>3. Error Handling</h2>
+<p>A custom 404 page is implemented in <code>src/app/not-found.tsx</code>. When a user navigates to any invalid URL, this page is displayed with a proper error message.</p>
+
+<h3>Source Code — src/app/not-found.tsx</h3>
+<pre>
+import Link from 'next/link';
+
+export default function NotFound() {
+  return (
+    &lt;div className="min-h-screen flex flex-col items-center
+         justify-center bg-[#f1f9f4]"&gt;
+
+      &lt;div className="flex items-center gap-3 mb-8"&gt;
+        &lt;div className="w-10 h-10 rounded-xl bg-[#2b5040]
+             text-white font-bold"&gt;C&lt;/div&gt;
+        &lt;span&gt;COUNTORI&lt;/span&gt;
+      &lt;/div&gt;
+
+      &lt;h1 className="text-8xl font-bold"&gt;404&lt;/h1&gt;
+      &lt;h2&gt;Page Not Found&lt;/h2&gt;
+      &lt;p&gt;The page you are looking for does not exist
+         or has been moved. Please check the URL.&lt;/p&gt;
+
+      &lt;div className="flex gap-3"&gt;
+        &lt;Link href="/"&gt;Go Home&lt;/Link&gt;
+        &lt;Link href="/dashboard"&gt;Dashboard&lt;/Link&gt;
+      &lt;/div&gt;
+
+      &lt;p&gt;
+        &lt;strong&gt;Available routes:&lt;/strong&gt;
+        /home · /login · /signup · /dashboard
+      &lt;/p&gt;
+    &lt;/div&gt;
+  );
+}
+</pre>
+
+<h3>Output — Custom 404 for Invalid URLs</h3>
+
+<div class="screenshot no-break">
+  <img src="404_page.png" alt="404 Error Page">
+  <div class="caption">Invalid URL: /this-page-does-not-exist — Custom 404 page displayed</div>
+</div>
+
+<div class="screenshot no-break">
+  <img src="404_nested.png" alt="404 Error Page - Nested">
+  <div class="caption">Invalid URL: /xyz/invalid — Same 404 page for nested invalid routes</div>
+</div>
+
+
+</body>
+</html>

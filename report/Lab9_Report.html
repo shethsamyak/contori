@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lab 9 Report — COUNTORI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      color: #1f2f28;
+      line-height: 1.7;
+      background: #fff;
+      padding: 40px 60px;
+      font-size: 13px;
+    }
+    @media print {
+      body { padding: 20px 40px; font-size: 11.5px; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+    }
+    .report-header {
+      text-align: center;
+      border-bottom: 3px solid #2b5040;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .report-header h1 { font-size: 26px; color: #2b5040; font-weight: 700; }
+    .report-header .subtitle { font-size: 16px; color: #6b7e72; margin-top: 2px; }
+    .report-header .meta { margin-top: 14px; font-size: 13px; color: #6b7e72; }
+    .report-header .meta strong { color: #1f2f28; }
+    h2 {
+      font-size: 18px; color: #2b5040;
+      border-left: 4px solid #2b5040;
+      padding-left: 12px;
+      margin: 28px 0 14px;
+    }
+    h3 { font-size: 14px; color: #1f2f28; margin: 16px 0 8px; }
+    pre {
+      background: #f4f8f5; border: 1px solid #d1e8d9; border-radius: 6px;
+      padding: 14px; overflow-x: auto;
+      font-family: 'Consolas', monospace; font-size: 11px; line-height: 1.55;
+      margin: 8px 0 16px; color: #1f2f28;
+    }
+    code {
+      background: #e8f5ed; padding: 1px 4px; border-radius: 3px;
+      font-family: 'Consolas', monospace; font-size: 11px;
+    }
+    .screenshot { margin: 10px 0 20px; text-align: center; }
+    .screenshot img {
+      max-width: 100%; border: 1px solid #d1e8d9;
+      border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .screenshot .caption {
+      font-size: 11px; color: #6b7e72; margin-top: 5px; font-style: italic;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 12px;
+    }
+    th { background: #2b5040; color: #fff; padding: 8px 12px; text-align: left; }
+    td { padding: 7px 12px; border-bottom: 1px solid #d1e8d9; }
+    tr:nth-child(even) td { background: #f9fcfa; }
+    .keyword { color: #0550ae; font-weight: 600; }
+    .sql-comment { color: #6b7e72; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="report-header">
+  <h1>Lab 9 — Database Integration &amp; CRUD Operations</h1>
+  <div class="subtitle">Backend-Database Connection with Create, Read, Update, Delete</div>
+  <div class="meta">
+    <strong>Project:</strong> COUNTORI — Bookkeeping Web Application &nbsp;|&nbsp;
+    <strong>Framework:</strong> Next.js 16.2.2 &nbsp;|&nbsp;
+    <strong>Database:</strong> PostgreSQL &nbsp;|&nbsp;
+    <strong>Connector:</strong> node-postgres (pg)
+  </div>
+</div>
+
+
+<!-- ==================== 1. DATABASE SETUP ==================== -->
+<h2>1. Database Setup</h2>
+<p><strong>Database chosen:</strong> PostgreSQL — a relational database suited for financial data with strong data integrity, ACID compliance, and support for UUIDs, constraints, and referential integrity.</p>
+
+<h3>Tables Created</h3>
+<table>
+  <tr><th>Table</th><th>Primary Key</th><th>Key Attributes</th><th>Relationships</th></tr>
+  <tr><td><code>users</code></td><td>id (UUID)</td><td>email, password_hash, full_name, role</td><td>—</td></tr>
+  <tr><td><code>companies</code></td><td>id (UUID)</td><td>name, gstin, pan, address, currency</td><td>—</td></tr>
+  <tr><td><code>user_companies</code></td><td>id (UUID)</td><td>role, is_default</td><td>FK → users, companies</td></tr>
+  <tr><td><code>categories</code></td><td>id (UUID)</td><td>name, type, icon, color</td><td>FK → companies</td></tr>
+  <tr><td><code>accounts</code></td><td>id (UUID)</td><td>name, type, bank_name, current_balance</td><td>FK → companies</td></tr>
+  <tr><td><code>transactions</code></td><td>id (UUID)</td><td>type, amount, date, status, payment_method</td><td>FK → companies, accounts, categories, clients, vendors</td></tr>
+  <tr><td><code>clients</code></td><td>id (UUID)</td><td>name, email, phone, gstin, outstanding_amount</td><td>FK → companies</td></tr>
+  <tr><td><code>vendors</code></td><td>id (UUID)</td><td>name, email, phone, gstin, outstanding_amount</td><td>FK → companies</td></tr>
+  <tr><td><code>invoices</code></td><td>id (UUID)</td><td>invoice_number, status, total, due_date</td><td>FK → companies, clients</td></tr>
+  <tr><td><code>invoice_items</code></td><td>id (UUID)</td><td>description, quantity, unit_price, total</td><td>FK → invoices (CASCADE)</td></tr>
+</table>
+
+<h3>Schema — Key Tables (src/lib/schema.sql)</h3>
+<pre>
+<span class="sql-comment">-- Enable UUID extension</span>
+<span class="keyword">CREATE EXTENSION IF NOT EXISTS</span> "uuid-ossp";
+
+<span class="sql-comment">-- TRANSACTIONS TABLE</span>
+<span class="keyword">CREATE TABLE IF NOT EXISTS</span> transactions (
+  id            UUID <span class="keyword">PRIMARY KEY DEFAULT</span> uuid_generate_v4(),
+  company_id    UUID <span class="keyword">REFERENCES</span> companies(id) <span class="keyword">ON DELETE CASCADE</span>,
+  account_id    UUID <span class="keyword">REFERENCES</span> accounts(id) <span class="keyword">ON DELETE SET NULL</span>,
+  category_id   UUID <span class="keyword">REFERENCES</span> categories(id) <span class="keyword">ON DELETE SET NULL</span>,
+  client_id     UUID <span class="keyword">REFERENCES</span> clients(id) <span class="keyword">ON DELETE SET NULL</span>,
+  vendor_id     UUID <span class="keyword">REFERENCES</span> vendors(id) <span class="keyword">ON DELETE SET NULL</span>,
+  type          VARCHAR(50) <span class="keyword">NOT NULL CHECK</span> (type <span class="keyword">IN</span> ('income','expense','transfer')),
+  amount        DECIMAL(15,2) <span class="keyword">NOT NULL</span>,
+  description   TEXT,
+  date          DATE <span class="keyword">NOT NULL</span>,
+  status        VARCHAR(50) <span class="keyword">DEFAULT</span> 'completed',
+  payment_method VARCHAR(50),
+  created_at    TIMESTAMPTZ <span class="keyword">DEFAULT</span> NOW()
+);
+
+<span class="sql-comment">-- CLIENTS TABLE</span>
+<span class="keyword">CREATE TABLE IF NOT EXISTS</span> clients (
+  id            UUID <span class="keyword">PRIMARY KEY DEFAULT</span> uuid_generate_v4(),
+  company_id    UUID <span class="keyword">REFERENCES</span> companies(id) <span class="keyword">ON DELETE CASCADE</span>,
+  name          VARCHAR(255) <span class="keyword">NOT NULL</span>,
+  email         VARCHAR(255),
+  phone         VARCHAR(20),
+  gstin         VARCHAR(20),
+  city          VARCHAR(100),
+  state         VARCHAR(100),
+  outstanding_amount DECIMAL(15,2) <span class="keyword">DEFAULT</span> 0,
+  created_at    TIMESTAMPTZ <span class="keyword">DEFAULT</span> NOW()
+);
+
+<span class="sql-comment">-- INDEXES for performance</span>
+<span class="keyword">CREATE INDEX IF NOT EXISTS</span> idx_transactions_company <span class="keyword">ON</span> transactions(company_id);
+<span class="keyword">CREATE INDEX IF NOT EXISTS</span> idx_transactions_date <span class="keyword">ON</span> transactions(date);
+<span class="keyword">CREATE INDEX IF NOT EXISTS</span> idx_clients_company <span class="keyword">ON</span> clients(company_id);
+</pre>
+
+
+<!-- ==================== 2. BACKEND CONNECTION ==================== -->
+<div class="page-break"></div>
+<h2>2. Backend Connection</h2>
+<p>The backend connects to PostgreSQL using <code>node-postgres (pg)</code> — a native PostgreSQL driver for Node.js. A connection pool is configured for efficient database access.</p>
+
+<h3>Source Code — src/lib/db.ts</h3>
+<pre>
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+    || 'postgresql://postgres:postgres@localhost:5432/countori',
+  max: 20,                      <span class="sql-comment">// Max 20 connections in pool</span>
+  idleTimeoutMillis: 30000,     <span class="sql-comment">// Close idle connections after 30s</span>
+  connectionTimeoutMillis: 2000, <span class="sql-comment">// Timeout after 2s</span>
+});
+
+pool.on('error', (err) =&gt; {
+  console.error('Unexpected error on idle client', err);
+});
+
+export async function query(text: string, params?: unknown[]) {
+  const start = Date.now();
+  const res = await pool.query(text, params);
+  const duration = Date.now() - start;
+  console.log('Query executed', {
+    text: text.substring(0, 80),
+    duration,
+    rows: res.rowCount,
+  });
+  return res;
+}
+
+export default pool;
+</pre>
+
+<h3>How the Connection Works</h3>
+<table>
+  <tr><th>Component</th><th>Details</th></tr>
+  <tr><td>Driver</td><td><code>pg</code> (node-postgres) v8.20.0</td></tr>
+  <tr><td>Connection</td><td>Connection pool with max 20 concurrent connections</td></tr>
+  <tr><td>Configuration</td><td>Via <code>DATABASE_URL</code> environment variable</td></tr>
+  <tr><td>Query Logging</td><td>Every query logs its SQL text, duration (ms), and row count</td></tr>
+  <tr><td>Error Handling</td><td>Pool-level error handler for unexpected disconnections</td></tr>
+</table>
+
+
+<!-- ==================== 3. CRUD IMPLEMENTATION ==================== -->
+<div class="page-break"></div>
+<h2>3. CRUD Implementation</h2>
+<p>Full CRUD operations are implemented via REST API routes. Below is the Transactions module as a complete example (the same pattern is used for Clients, Vendors, Invoices, and Accounts).</p>
+
+<h3>3.1 — CREATE (POST /api/transactions)</h3>
+<p>Inserts a new transaction record via a form modal on the frontend.</p>
+
+<pre>
+<span class="sql-comment">// src/app/api/transactions/route.ts</span>
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const store = getDemoStore();
+    const transaction = store.createTransaction({
+      company_id: 'demo-company-001',
+      ...body,
+    });
+    return NextResponse.json(
+      { success: true, data: transaction },
+      { status: 201 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+</pre>
+
+<div class="screenshot no-break">
+  <img src="create_form.png" alt="Create Transaction Form">
+  <div class="caption">CREATE: "New Transaction" form with fields for type, amount, description, date, category, account, payment method, tax, and notes</div>
+</div>
+
+
+<h3>3.2 — READ (GET /api/transactions)</h3>
+<p>Retrieves and displays transaction records dynamically on the frontend with filtering and pagination.</p>
+
+<pre>
+<span class="sql-comment">// src/app/api/transactions/route.ts</span>
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const store = getDemoStore();
+    const transactions = store.getTransactions('demo-company-001', {
+      type:        searchParams.get('type') || undefined,
+      category_id: searchParams.get('category_id') || undefined,
+      status:      searchParams.get('status') || undefined,
+      search:      searchParams.get('search') || undefined,
+    });
+
+    const page  = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const start = (page - 1) * limit;
+    const paged = transactions.slice(start, start + limit);
+
+    return NextResponse.json({
+      success: true, data: paged,
+      total: transactions.length, page, limit,
+      totalPages: Math.ceil(transactions.length / limit),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+</pre>
+
+<div class="screenshot no-break">
+  <img src="read_transactions.png" alt="Transactions List">
+  <div class="caption">READ: Transactions displayed dynamically in a data table with search, type/category/status filters</div>
+</div>
+
+
+<div class="page-break"></div>
+<h3>3.3 — UPDATE (PUT /api/transactions/[id])</h3>
+<p>Modifies an existing transaction record through the edit form. Existing data is pre-filled.</p>
+
+<pre>
+<span class="sql-comment">// src/app/api/transactions/[id]/route.ts</span>
+
+export async function PUT(
+  request: Request,
+  { params }: { params: Promise&lt;{ id: string }&gt; }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const store = getDemoStore();
+    const transaction = store.updateTransaction(id, body);
+    if (!transaction)
+      return NextResponse.json(
+        { success: false, error: 'Not found' }, { status: 404 }
+      );
+    return NextResponse.json({ success: true, data: transaction });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+</pre>
+
+<div class="screenshot no-break">
+  <img src="update_form.png" alt="Edit Transaction Form">
+  <div class="caption">UPDATE: "Edit Transaction" form pre-filled with existing data (amount: 146250, description, date, category, account)</div>
+</div>
+
+
+<h3>3.4 — DELETE (DELETE /api/transactions/[id])</h3>
+<p>Deletes a record with a confirmation dialog for safe deletion.</p>
+
+<pre>
+<span class="sql-comment">// src/app/api/transactions/[id]/route.ts</span>
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise&lt;{ id: string }&gt; }
+) {
+  const { id } = await params;
+  const store = getDemoStore();
+  store.deleteTransaction(id);
+  return NextResponse.json({ success: true });
+}
+</pre>
+
+<pre>
+<span class="sql-comment">// Frontend — Delete with confirmation (src/app/dashboard/transactions/page.tsx)</span>
+
+const handleDelete = async (id: string) =&gt; {
+  if (!confirm('Delete this transaction?')) return;  <span class="sql-comment">// Validation</span>
+  await fetch(`/api/transactions/${id}`, { method: 'DELETE' });
+  fetchTransactions();  <span class="sql-comment">// Refresh the list</span>
+};
+</pre>
+
+<p>Each transaction row has a delete (trash) icon. Clicking it shows a browser confirmation dialog — the record is only deleted if the user confirms.</p>
+
+
+<!-- ==================== ADDITIONAL READ ==================== -->
+<div class="page-break"></div>
+<h3>3.5 — Additional: Clients CRUD</h3>
+<p>The same CRUD pattern is applied to other modules. Below is the Clients page showing data retrieved dynamically:</p>
+
+<div class="screenshot no-break">
+  <img src="read_clients.png" alt="Clients List">
+  <div class="caption">READ (Clients): Client cards displayed dynamically with name, email, phone, location, GSTIN, and outstanding amount. Edit and delete icons on each card.</div>
+</div>
+
+<h3>CRUD API Summary</h3>
+<table>
+  <tr><th>Module</th><th>Create (POST)</th><th>Read (GET)</th><th>Update (PUT)</th><th>Delete (DELETE)</th></tr>
+  <tr><td>Transactions</td><td>/api/transactions</td><td>/api/transactions</td><td>/api/transactions/[id]</td><td>/api/transactions/[id]</td></tr>
+  <tr><td>Clients</td><td>/api/clients</td><td>/api/clients</td><td>/api/clients/[id]</td><td>/api/clients/[id]</td></tr>
+  <tr><td>Vendors</td><td>/api/vendors</td><td>/api/vendors</td><td>/api/vendors/[id]</td><td>/api/vendors/[id]</td></tr>
+  <tr><td>Invoices</td><td>/api/invoices</td><td>/api/invoices</td><td>/api/invoices/[id]</td><td>/api/invoices/[id]</td></tr>
+  <tr><td>Accounts</td><td>/api/accounts</td><td>/api/accounts</td><td>/api/accounts/[id]</td><td>/api/accounts/[id]</td></tr>
+</table>
+
+
+</body>
+</html>

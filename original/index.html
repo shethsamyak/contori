@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>COUNTORI - Where Every Digit Matters</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary: #2b5040;
+      --secondary: #f1f9f4;
+      --accent: #a1d9b1;
+      --text: #1f2f28;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--secondary);
+      color: var(--text);
+    }
+
+    .branding {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: var(--primary);
+    }
+
+    .bg-primary { background-color: var(--primary); }
+    .text-primary { color: var(--primary); }
+    .bg-accent { background-color: var(--accent); }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="bg-white shadow sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto flex justify-between items-center p-4">
+    <h1 class="branding">COUNTORI</h1>
+    <nav class="space-x-4 text-sm">
+      <a href="#services" class="hover:text-primary">Services</a>
+      <a href="#about" class="hover:text-primary">About</a>
+      <a href="#contact" class="bg-primary text-white px-4 py-2 rounded">Get a Quote</a>
+    </nav>
+  </div>
+</header>
+
+<!-- WHY CHOOSE -->
+<section class="py-16 bg-gradient-to-r from-green-100 to-green-50 text-center">
+  <h2 class="text-4xl font-semibold text-primary mb-12">WHY COUNTORI?</h2>
+
+  <div class="max-w-6xl mx-auto grid md:grid-cols-4 gap-8 px-4">
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="font-semibold text-lg mb-2">Trusted Expertise</h3>
+      <p class="text-gray-600">Certified professionals keeping your business compliant.</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="font-semibold text-lg mb-2">Custom Solutions</h3>
+      <p class="text-gray-600">Tailored bookkeeping based on your needs.</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="font-semibold text-lg mb-2">Data Security</h3>
+      <p class="text-gray-600">Your financial data is safe and confidential.</p>
+    </div>
+    <div class="bg-white p-6 rounded shadow">
+      <h3 class="font-semibold text-lg mb-2">On-Time Reports</h3>
+      <p class="text-gray-600">Clear and timely financial insights.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="py-20 max-w-6xl mx-auto text-center px-6">
+  <h2 class="text-4xl font-semibold text-primary mb-12">Our Simple Process</h2>
+
+  <div class="grid md:grid-cols-4 gap-10">
+    <div>
+      <div class="w-16 h-16 bg-accent rounded-full mx-auto flex items-center justify-center font-bold">1</div>
+      <h4 class="font-semibold mt-3">Consult</h4>
+    </div>
+    <div>
+      <div class="w-16 h-16 bg-accent rounded-full mx-auto flex items-center justify-center font-bold">2</div>
+      <h4 class="font-semibold mt-3">Setup</h4>
+    </div>
+    <div>
+      <div class="w-16 h-16 bg-accent rounded-full mx-auto flex items-center justify-center font-bold">3</div>
+      <h4 class="font-semibold mt-3">Bookkeeping</h4>
+    </div>
+    <div>
+      <div class="w-16 h-16 bg-accent rounded-full mx-auto flex items-center justify-center font-bold">4</div>
+      <h4 class="font-semibold mt-3">Reporting</h4>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services" class="bg-white py-16">
+  <h2 class="text-3xl font-bold text-center text-primary mb-12">Our Services</h2>
+
+  <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 px-6">
+    <div class="bg-gray-50 p-6 rounded shadow text-center">
+      <h3 class="font-semibold text-lg">Monthly Bookkeeping</h3>
+      <p class="text-sm text-gray-600 mt-2">Accurate records every month.</p>
+    </div>
+    <div class="bg-gray-50 p-6 rounded shadow text-center">
+      <h3 class="font-semibold text-lg">Accounts Payable & Receivable</h3>
+      <p class="text-sm text-gray-600 mt-2">Cash flow under control.</p>
+    </div>
+    <div class="bg-gray-50 p-6 rounded shadow text-center">
+      <h3 class="font-semibold text-lg">Payroll Reconciliation</h3>
+      <p class="text-sm text-gray-600 mt-2">Error-free payroll entries.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="bg-primary text-white py-16 text-center">
+
+  <h2 class="text-4xl font-semibold mb-6">Get a Free Quote</h2>
+
+  <form id="quoteForm" class="max-w-md mx-auto space-y-4 px-4">
+
+    <!-- spam protection (hidden field) -->
+    <input type="text" id="company" name="company" style="display:none">
+
+    <input
+      type="text"
+      id="name"
+      name="name"
+      placeholder="Your Name"
+      class="w-full px-4 py-2 rounded text-black"
+      required
+      minlength="2"
+    >
+
+    <input
+      type="email"
+      id="email"
+      name="email"
+      placeholder="Your Email"
+      class="w-full px-4 py-2 rounded text-black"
+      required
+    >
+
+    <textarea
+      id="requirements"
+      name="requirements"
+      placeholder="Your Requirements"
+      class="w-full px-4 py-2 rounded text-black h-24"
+      required
+    ></textarea>
+
+    <button
+      id="submitBtn"
+      type="submit"
+      class="bg-accent text-primary px-6 py-3 rounded font-semibold w-full"
+    >
+      Submit
+    </button>
+
+    <p id="formMessage" class="font-semibold"></p>
+
+  </form>
+
+</section>
+
+
+<!-- FOOTER -->
+<section class="py-12 text-center bg-green-100">
+  <h2 class="text-3xl font-semibold text-primary mb-4">
+    Ready to Simplify Your Bookkeeping?
+  </h2>
+  <p class="text-gray-700">
+    Let COUNTORI handle the numbers while you grow your business.
+  </p>
+</section>
+
+</body>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const form = document.getElementById("quoteForm");
+  const message = document.getElementById("formMessage");
+  const submitBtn = document.getElementById("submitBtn");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const requirements = document.getElementById("requirements").value.trim();
+    const company = document.getElementById("company").value; // spam honeypot
+
+    message.textContent = "";
+
+    // SPAM PROTECTION 
+    if (company) {
+      message.textContent = "Spam detected.";
+      message.className = "text-red-300";
+      return;
+    }
+
+    // VALIDATION 
+    if (!name || !email || !requirements) {
+      message.textContent = "⚠ Please fill all fields.";
+      message.className = "text-red-300";
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      message.textContent = "⚠ Invalid email address.";
+      message.className = "text-red-300";
+      return;
+    }
+
+    // disable button while sending
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
+    try {
+      // SEND TO BACKEND (POSTGRES)
+      const response = await fetch("http://localhost:5000/api/quote", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          requirements
+        })
+      });
+
+      if (!response.ok) throw new Error();
+
+      message.textContent = "Request submitted successfully!";
+      message.className = "text-green-300";
+
+      form.reset();
+
+    } catch {
+      message.textContent = "Submission failed. Try again.";
+      message.className = "text-red-300";
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit";
+  });
+
+});
+</script>
+
+</html>
+
+
+
+<!-- DB codeCREATE TABLE quotes (
+  id SERIAL PRIMARY KEY,
+  name TEXT,
+  email TEXT,
+  requirements TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); -->
+
+
+<!-- node package requirement for backend 
+npm install express pg cors nodemailer
+
+basic setup for database in js
+const pool = new Pool({
+  user: "postgres",
+  host: "localhost",
+  database: "countori",
+  password: "yourpassword",
+  port: 5432
+});-->
+
+
+
