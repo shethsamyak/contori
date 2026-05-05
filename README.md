@@ -38,7 +38,7 @@ A full-stack professional bookkeeping web application built with **Next.js 16**,
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/contori.git
+git clone https://github.com/shethsamyak/contori.git
 cd contori
 
 # Install dependencies
